@@ -1,0 +1,8 @@
+.list{
+    max-height: 500px;
+    margin-bottom: 10px;
+    overflow-y:scroll;
+}
+.col {
+    min-width: 250px;
+}

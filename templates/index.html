@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="row">
+        <div class="col" id="selection-table">
+            <form>
+                <div class="form-group">
+                    <label for="htsCode">HTS Code</label>
+                    <input type="text" class="form-control" id="code" name = "code" autofocus = 'true' placeholder="Enter code">
+                </div>
+            </form>
+            <div class="list">
+                <ul class="list-group">
+                </ul>
+            </div>
+        </div>
+        <div class="col">
+            <h2>Navigation</h2>
+            <div id='htsCode'></div>
+            <div id='htsDesc'></div>
+            <h3>Duty rate</h3>
+            <div id='dutyRate'></div>
+            <h3>Special duty rates</h3>
+            <div id='dutyRate-special'></div>
+        </div>
+    </div>
+</div>
+<script>
+
+// Update every time text field is updated
+window.addEventListener('input', function (e) {
+    search();
+}, false);
+
+window.addEventListener('keypress', function (e) {
+    var key = e.which || e.keyCode;
+    if (key === 13) {
+      event.preventDefault();
+    }
+});
+
+$( document ).ready(function() {
+    search();
+});
+
+function search() {
+    $.get("/search", {"number": $("#code").val()}, function(data) {
+        update(data);
+    }
+    );
+}
+
+function sectionSearch(sectionnum) {
+    console.log("searched");
+    $.get("/sectionSearch", {"number": sectionnum}, function(data) {
+        update(data);
+    });
+}
+
+function update(data) {
+    // Update master hts code display
+        $("div[id='htsCode']").empty();
+        $("div[id='htsCode']").append("<p class='lead'>" + document.getElementById("code").value + "</p>");
+
+        // Update search results, construct objects
+        $("ul[class='list-group']").empty();
+        data.forEach(row => {
+            // Add button to page
+            $("ul[class='list-group']").append(row);
+        });
+}
+
+function fillText(text) {
+    // Update HTS text
+    document.getElementById("code").value = text;
+
+    // Clear divs to be re-updated
+    $("div[id='htsDesc']").empty();
+    $("div[id='dutyRate']").empty();
+    $("div[id='dutyRate-special']").empty();
+
+    // Update descriptions accordingly using backend to search for parent descriptions
+    $.get("/describer", {"number": $("#code").val()}, function(data) {
+        for (let i = data.length - 1; i >= 0; i--) {
+            $("div[id='htsDesc']").append('<p>' + data[i]["description"] + '</p>');
+            if (data[i]["rate"] != "")
+                $("div[id='dutyRate']").append(data[i]["rate"]);
+            if (data[i]["special_rate"] != "")
+                $("div[id='dutyRate-special']").append(data[i]["special_rate"]);
+        }
+    });
+    search();
+}
+</script>
+{% endblock %}
